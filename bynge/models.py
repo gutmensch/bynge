@@ -1,15 +1,4 @@
-from datetime import datetime
 from elasticsearch_dsl import DocType, String, Date
-from elasticsearch_dsl.connections import connections
-from elasticsearch_dsl.index import Index
-
-# Define a default Elasticsearch client
-connections.create_connection(hosts=['localhost'])
-
-# init index
-Index(name='bynge').delete()
-if not Index(name='bynge').exists():
-    Index(name='bynge').settings(number_of_shards=1, number_of_replicas=0).create()
 
 
 class IncomingFile(DocType):

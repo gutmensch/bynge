@@ -2,7 +2,11 @@ from flask import Flask
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from elasticsearch_dsl.connections import connections
+from elasticsearch_dsl.index import Index
 from bynge.models import IncomingFile, AudioFile, ApiUser
+from sys import exit
+
 
 app = Flask(__name__)
 
@@ -24,10 +28,18 @@ logfile_handler.setFormatter(logging.Formatter(app.config['LOG_FORMAT']))
 app.logger.addHandler(logfile_handler)
 
 
-# init ES index and needed models
-IncomingFile.init()
-AudioFile.init()
-ApiUser.init()
+# init ES index and document type mappings
+try:
+    connections.create_connection(hosts=[app.config['ELASTIC_URL']])
+    #Index(name='bynge').delete()
+    if not Index(name='bynge').exists():
+        Index(name='bynge').settings(number_of_shards=1, number_of_replicas=0).create()
+    IncomingFile.init()
+    AudioFile.init()
+    ApiUser.init()
+except:
+    app.logger.error("could not initialize elasticsearch, aborting")
+    exit(1)
 
 
 import bynge.views
