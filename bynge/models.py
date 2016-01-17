@@ -1,18 +1,70 @@
 from datetime import datetime
 from elasticsearch_dsl import DocType, String, Date
 from elasticsearch_dsl.connections import connections
+from elasticsearch_dsl.index import Index
 
 # Define a default Elasticsearch client
 connections.create_connection(hosts=['localhost'])
 
+# init index
+Index(name='bynge').delete()
+if not Index(name='bynge').exists():
+    Index(name='bynge').settings(number_of_shards=1, number_of_replicas=0).create()
+
+
 class IncomingFile(DocType):
     file_path = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     uuid = String(analyzer='snowball')
-    #tags = String(index='not_analyzed')
+    processed = String(analyzer='snowball')
+    process_date = Date()
     upload_date = Date()
 
     class Meta:
-        index = 'incoming'
+        index = 'bynge'
 
     def save(self, ** kwargs):
         return super(IncomingFile, self).save(** kwargs)
+
+
+class AudioFile(DocType):
+    file_path = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    uuid = String(analyzer='snowball')
+    type = String(analyzer='standard')
+    runtime = String(analyzer='standard')
+    artist = String(analyzer='standard')
+    title = String(analyzer='standard')
+    album = String(analyzer='standard')
+    year = String(analyzer='standard')
+    composer = String(analyzer='standard')
+    genre = String(analyzer='standard')
+    comment = String(analyzer='standard')
+    track = String(analyzer='standard')
+    lossless = String(analyzer='standard')
+    bitrate = String(analyzer='standard')
+    encoder = String(analyzer='standard')
+    faulty = String(analyzer='standard')
+    lyrics = String(analyzer='standard')
+    tabs = String(analyzer='standard')
+    cover = String(analyzer='standard')
+    live = String(analyzer='standard')
+    tags = String(index='not_analyzed')
+    entry_date = Date()
+
+    class Meta:
+        index = 'bynge'
+
+    def save(self, ** kwargs):
+        return super(AudioFile, self).save(** kwargs)
+
+
+class ApiUser(DocType):
+    username = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    password = String(index='not_analyzed')
+    groups = String(analyzer='standard')
+    entry_date = Date()
+
+    class Meta:
+        index = 'bynge'
+
+    def save(self, ** kwargs):
+        return super(ApiUser, self).save(** kwargs)
